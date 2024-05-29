@@ -6,11 +6,14 @@ using UnityEngine.UI;
 public class FindHand : MonoBehaviour
 {
     public Slider handYSlider; // Public reference to the Slider component
+    public Slider lefthandSlider; // Public reference to the Lefhand Slider component
     public TimeManager timeManager; // Reference to the TimeManager script
 
     // Define the minimum and maximum angles for normalization
     public float minAngle = -90f;
     public float maxAngle = 90f;
+
+
 
     // Define the middle value for normalization
     private float middleAngle;
@@ -20,6 +23,7 @@ public class FindHand : MonoBehaviour
 
     // Define a variable to hold the target value for smoothing
     private float targetAngle;
+    private float lefttargetAngle;
 
     // Define a threshold for how close the slider needs to be to the extremes to trigger time change
     public float threshold = 0.05f; // Adjust this value as needed
@@ -31,10 +35,16 @@ public class FindHand : MonoBehaviour
     }
 
     void Update()
+
     {
+        // UNITY_AVATAR sample prefab has detailed rig and tags added to shoulders and hands
         // Try to find the GameObjects with the tags "shoulder" and "hand"
-        GameObject shoulderObject = GameObject.FindGameObjectWithTag("shoulder");
-        GameObject handObject = GameObject.FindGameObjectWithTag("hand");
+        GameObject shoulderObject = GameObject.FindGameObjectWithTag("rightshoulder");
+        GameObject handObject = GameObject.FindGameObjectWithTag("righthand");
+
+        // Try to find left hand GameObjects with tags
+        GameObject leftshoulderObject = GameObject.FindGameObjectWithTag("leftshoulder");
+        GameObject lefthandObject = GameObject.FindGameObjectWithTag("lefthand");
 
         // Check if both GameObjects were found
         if (shoulderObject != null && handObject != null)
@@ -43,10 +53,18 @@ public class FindHand : MonoBehaviour
             float shoulderY = shoulderObject.transform.position.y;
             float handY = handObject.transform.position.y;
 
+            /// Same for the leftside
+            float leftshoulderY = leftshoulderObject.transform.position.y;
+            float lefthandY = lefthandObject.transform.position.y;
+
+
+            
+
             // Calculate the angle between the shoulder and hand positions
             float angle = Mathf.Atan2(handY - shoulderY, 1) * Mathf.Rad2Deg;
+            float angleleft = Mathf.Atan2(lefthandY - leftshoulderY, 1) * Mathf.Rad2Deg;
 
-            // Set the target value of the slider based on the sign of the angle
+            // Set the target value of the vertical slider based on the RIGHT side angle
             if (angle > 0)
             {
                 targetAngle = 1f; // Slider goes up
@@ -56,8 +74,30 @@ public class FindHand : MonoBehaviour
                 targetAngle = 0f; // Slider goes down
             }
 
-            // Smoothly move the slider towards the target value
+            // Set the target value of the horizontal slider based on the LEFT side angle
+            if (angleleft > 0)
+            {
+                lefttargetAngle = 1f; // Slider goes right
+            }
+            else
+            {
+                lefttargetAngle = 0f; // Slider goes left
+            }
+
+
+            //Smoothly move the sliders towards the target value
+            
+            ///Description for Lerp
+            //Linearly interpolates between a and b by t.
+
+            //The parameter t is clamped to the range[0, 1].
+
+            //When t = 0 returns a.
+            //When t = 1 return b.
+            //When t = 0.5 returns the midpoint of a and b.
+
             handYSlider.value = Mathf.Lerp(handYSlider.value, targetAngle, smoothSpeed * Time.deltaTime);
+            lefthandSlider.value = Mathf.Lerp(lefthandSlider.value, lefttargetAngle, smoothSpeed * Time.deltaTime);
 
             // If the slider is near fully up or fully down, change the time of day
             if (handYSlider.value >= 1f - threshold || handYSlider.value <= threshold)
@@ -75,10 +115,6 @@ public class FindHand : MonoBehaviour
         }
     }
 }
-
-
-
-
 
 //using System.Collections;
 //using System.Collections.Generic;
